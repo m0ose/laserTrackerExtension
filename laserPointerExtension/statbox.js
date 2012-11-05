@@ -3,9 +3,9 @@
 
 function receiveMessage(ev) {
     //statusBeam.move(ev.x,ev.y)
-   
-    var x2 = Math.floor(document.width * ev.x);
-    var y2 = Math.floor(document.height * ev.y);
+
+    var x2 = Math.floor(window.innerWidth * ev.x) + window.pageXOffset;;
+    var y2 = Math.floor(window.innerHeight * ev.y) + window.pageYOffset;;
     console.log( document.width, document.height,x2,y2);
     statusBeam.move(x2,y2)
 }
