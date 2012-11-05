@@ -2,7 +2,7 @@
 
 
 function receiveMessage(ev) {
-    statusBeam.move(ev.x,ev.y)
+    statusBeam.move(Math.floor(ev.x * document.width),Math.floor(ev.y * document.height))
 }
 var statusBeam = null;
 statusBeam = new function(){
