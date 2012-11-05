@@ -2,7 +2,12 @@
 
 
 function receiveMessage(ev) {
-    statusBeam.move(Math.floor(ev.x * document.width),Math.floor(ev.y * document.height))
+    //statusBeam.move(ev.x,ev.y)
+    var x2 = Math.floor(document.width * ev.x);
+    var y2 = Math.floor(document.height * ev.y);
+    console.log( document.width, document.height,x2,y2);
+    statusBeam.move(x2,y2)
+
 }
 var statusBeam = null;
 statusBeam = new function(){
@@ -50,7 +55,7 @@ statusBeam = new function(){
                 var element = document.elementFromPoint(x, y);
                 console.log(element)
                 if( element){
-                     syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
+                    syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
                 }
             }
             this.lastTime = now
@@ -71,7 +76,7 @@ statusBeam = new function(){
                 //  console.log("mouse click")
                 var element = document.elementFromPoint(x, y);
                 if( element){
-                      syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
+                    syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
                 }
             }
             else{
