@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>tuio</title>
+    <style>
+        #tuioCanvas {
+            border: 1px black solid;
+            border-radius: 6px;
+            height: 480px;
+            width: 320px;
+        }
+        body {background-color:#000000;}
+
+    </style>
+
+    <script src='requirejs/require.js'></script>
+    <script src="acequiaHACK.js"></script>
+    <script src='http://localhost:9091/acequia/acequia.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>
+        requirejs([
+            'syntheticEvents'])
+        $(document).ready( function(){
+            var ac2 = createAcequiaConnection()
+            ac2.initializeAcequiaSession()
+            ac2.subscribeMessage( "/tuio/2Dcur/set", onTuio2Dcur)
+        });
+
+        var statBeam = null;
+        var onTuio2Dcur = function (msg) {
+            var x2 = parseFloat(msg.body[1]) ;
+            var y2 = parseFloat(msg.body[2]) ;
+
+            if(!statBeam){
+                statBeam = new statusBeam();
+            }
+
+            statBeam.move(x2 * document.width, y2 * document.height )
+            // timeout = setTimeout(onTimeout, 200);
+        };
+
+
+        function statusBeam(){
+            this.minDist = 40;
+            this.timeout = 1000;
+            this.idleTimeout = 1000;
+            this.initialX = 0;
+            this.initialY = 0;
+            this.lastTime = new Date().getTime();
+            this.div = document.createElement('div')
+            this.div.style.cssText = " position:absolute";
+            this.progressBar = document.createElement('progress')
+            this.progressBar.style.cssText = " border: 2px blue solid; border-radius: 6px";
+            this.progressBar.max = 1;
+            this.progressBar.value = 0;
+            this.div.appendChild( this.progressBar);
+
+            var states = {up:"UP", down:"down"}
+            this.state = states.up;
+            this.idleTimer = null;
+
+            this.move=function(x,y){
+                this.div.style.top = y + 1 + 'px';
+                this.div.style.left = x + 1 + 'px';
+                var now  = new Date().getTime();
+                var dt = now - this.lastTime;
+                var tratio = dt/this.timeout;
+                var dist =  Math.sqrt( Math.pow(x-this.initialX,2) +  Math.pow( y-this.initialY,2))
+                //console.log(tratio, dist)
+                if( this.idleTimer){ window.clearTimeout( this.idleTimer )}
+                this.idleTimer =  window.setTimeout( this.idle.bind( this ), this.idleTimeout )
+
+                if( this.state == states.down){
+                    this.progress(100)
+                    if( tratio > 0.2){//idle start long press over
+                        this.state = states.up
+                        this.lastTime = now
+                    }
+                    else{
+                       // console.log("mouse move")
+                        var element = document.elementFromPoint(x, y);
+                        console.log(element)
+                        if( element){
+                            syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
+                        }
+                    }
+                    this.lastTime = now
+                }
+                else if(this.state == states.up){
+                    if( dist > this.minDist){
+                        //reset counter
+                        this.lastTime = now
+                        this.initialX = x;
+                        this.initialY = y;
+                        this.progress(0)
+                    }
+                    if( tratio > 1){//initial mouse click
+                        this.state = states.down;
+                        this.lastTime = now
+                        this.initialX = x;
+                        this.initialY = y;
+                      //  console.log("mouse click")
+                        var element = document.elementFromPoint(x, y);
+                        if( element){
+                            syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
+                        }
+                    }
+                    else{
+                        this.progress( tratio)
+                    }
+                }
+            }
+
+
+            this.progress = function(ratio){
+                this.div.style.visibility = "visible"
+                //this.progressDiv.style.height = 100*(1-ratio)+"px";
+                this.progressBar.value =  ratio;
+                if( ratio > 1){
+                    this.progressBar.style.border=" 4px white solid "
+                }
+                else{
+                    this.progressBar.style.border=" 2px blue solid "
+                }
+                return ratio
+            }
+
+
+            this.idle = function(){
+                this.div.style.visibility = "hidden"
+            }
+            document.body.appendChild(this.div)
+        }
+
+    </script>
+</head>
+
+<body onmousemove="console.log('move') " onclick="console.log('click') ">
+<br><br>
+<div onclick=" console.warn('click')" onmousemove="this.style.backgroundColor = 'blue' " style="color:white"> <h1>hello</h1>   </div>
+
+</body>
