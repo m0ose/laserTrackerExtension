@@ -46,6 +46,7 @@ var onTuio2Dcur = function (msg) {
     var y2 = parseFloat(msg.body[2]) ;
 
     move(x2 , y2  )
+        
     // timeout = setTimeout(onTimeout, 200);
 };
 
