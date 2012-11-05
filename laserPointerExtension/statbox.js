@@ -3,6 +3,7 @@
 
 function receiveMessage(ev) {
     //statusBeam.move(ev.x,ev.y)
+    //
     var x2 = Math.floor(document.width * ev.x);
     var y2 = Math.floor(document.height * ev.y);
     console.log( document.width, document.height,x2,y2);
