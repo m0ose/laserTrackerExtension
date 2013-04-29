@@ -15,41 +15,43 @@
 
     <script src='requirejs/require.js'></script>
     <script src="acequiaHACK.js"></script>
-    <script src='http://localhost:9091/acequia/acequia.js'></script>
+   <!-- <script src='http://localhost:9091/acequia/acequia.js'></script>           -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
     <script>
         requirejs([
             'syntheticEvents'])
         $(document).ready( function(){
-            var ac2 = createAcequiaConnection()
-            ac2.initializeAcequiaSession()
-            ac2.subscribeMessage( "/tuio/2Dcur/set", onTuio2Dcur)
+           // var ac2 = createAcequiaConnection()
+           // ac2.initializeAcequiaSession()
+            //ac2.subscribeMessage( "/tuio/2Dcur/set", onTuio2Dcur)
+            statbeam = new statusBeam();
+
         });
 
-        var statBeam = null;
-        var onTuio2Dcur = function (msg) {
-            var x2 = parseFloat(msg.body[1]) ;
-            var y2 = parseFloat(msg.body[2]) ;
+        var statbeam = null;
+        function receiveMessage(ev) {
+            //statusBeam.move(ev.x,ev.y)
 
-            if(!statBeam){
-                statBeam = new statusBeam();
-            }
+            var x2 = Math.floor(window.innerWidth * ev.x) + window.pageXOffset;;
+            var y2 = Math.floor(window.innerHeight * ev.y) + window.pageYOffset;;
+            //console.log( document.width, document.height,x2,y2);
+            statbeam.move(x2,y2)
+        }
 
-            statBeam.move(x2 * document.width, y2 * document.height )
-            // timeout = setTimeout(onTimeout, 200);
-        };
-
-
-        function statusBeam(){
+        var statusBeam = function(){
             this.minDist = 40;
             this.timeout = 1000;
             this.idleTimeout = 1000;
             this.initialX = 0;
             this.initialY = 0;
             this.lastTime = new Date().getTime();
-            this.div = document.createElement('div')
+            this.div = document.getElementById('statusBeamDiv');
+            if( !this.div){    this.div = document.createElement('div')    }
+            this.div.id = 'statusBeamDiv';
             this.div.style.cssText = " position:absolute";
-            this.progressBar = document.createElement('progress')
+            this.progressBar = document.getElementById('statusBeamBar');
+            if( ! this.progressBar){    this.progressBar = document.createElement('progress') }
+            this.progressBar.id = "statusBeamBar";
             this.progressBar.style.cssText = " border: 2px blue solid; border-radius: 6px";
             this.progressBar.max = 1;
             this.progressBar.value = 0;
@@ -77,9 +79,9 @@
                         this.lastTime = now
                     }
                     else{
-                       // console.log("mouse move")
+                        // console.log("mouse move")
                         var element = document.elementFromPoint(x, y);
-                        console.log(element)
+                        //console.log(element)
                         if( element){
                             syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
                         }
@@ -99,7 +101,7 @@
                         this.lastTime = now
                         this.initialX = x;
                         this.initialY = y;
-                      //  console.log("mouse click")
+                        //  console.log("mouse click")
                         var element = document.elementFromPoint(x, y);
                         if( element){
                             syntheticEvent.simulate(element, "mousemove", {pointerX:x, pointerY:y} )
@@ -127,15 +129,23 @@
 
 
             this.idle = function(){
-                this.div.style.visibility = "hidden"
+                //this.div.style.visibility = "hidden"
             }
             document.body.appendChild(this.div)
         }
+        console.log( 'made')
 
+        function moveMouse(e){
+            //console.log(e)
+           var x = e.screenX / window.innerWidth;
+           var y = e.screenY / window.innerHeight;
+
+           receiveMessage( {x:x, y:y})
+        }
     </script>
 </head>
 
-<body onmousemove="console.log('move') " onclick="console.log('click') ">
+<body onmousemove="moveMouse(event) " onclick="console.log('click') ">
 <br><br>
 <div onclick=" console.warn('click')" onmousemove="this.style.backgroundColor = 'blue' " style="color:white"> <h1>hello</h1>   </div>
 

@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>tuio</title>
+    <style>
+        #tuioCanvas {
+            border: 1px black solid;
+            border-radius: 6px;
+            height: 480px;
+            width: 320px;
+        }
+        body {background-color:#000000;}
+
+    </style>
+
+    <script src='requirejs/require.js'></script>
+    <script src="acequiaHACK.js"></script>
+    <!-- <script src='http://localhost:9091/acequia/acequia.js'></script>           -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>
+        requirejs([
+            'syntheticEvents'])
+        $(document).ready( function(){
+            // var ac2 = createAcequiaConnection()
+            // ac2.initializeAcequiaSession()
+            //ac2.subscribeMessage( "/tuio/2Dcur/set", onTuio2Dcur)
+            statbeam = new statusBeam();
+
+        });
+
+        var statbeam = null;
+        function receiveMessage(ev) {
+            //statusBeam.move(ev.x,ev.y)
+
+            var x2 = Math.floor(window.innerWidth * ev.x) + window.pageXOffset;;
+            var y2 = Math.floor(window.innerHeight * ev.y) + window.pageYOffset;;
+            //console.log( document.width, document.height,x2,y2);
+            statbeam.move(x2,y2)
+        }
+
+        var statusBeam = function(){
+            this.minDist = 30;
+            this.initialX = 0;
+            this.initialY = 0;
+            this.x = 0;
+            this.y = 0;
+
+            this.verbose = true;
+            this.energy = 0;
+            this.energyPerMove = 0.002; //ms
+            this.energyLoss = 0.0015; //ms
+            this.clickEnergy = 1.0;
+            this.distancePenalty = 0.1;
+            this.lastTickTime = -1;
+            this.lastMoveTime = -1;
+            this.mouseDown = false;
+            this.animFramID = null;
+            this.animating = false;
+            this.rootClickNode = null;
+
+            this.div = document.getElementById('statusBeamDiv');
+            if( !this.div){    this.div = document.createElement('div')    }
+            this.div.id = 'statusBeamDiv';
+            this.div.style.cssText = " position:fixed; color:white";
+            this.img = new Image();
+            this.div.appendChild( this.img)
+            this.circleImg = new Image();
+            this.circleImg.src = "./laserPointerExtension/img/circle.png"
+            this.burstImg = new Image();
+            this.burstImg.src = "./laserPointerExtension/img/burst.png" ;
+            document.body.appendChild(this.div)
+
+            this.move=function(x,y){
+                this.div.style.top = y -32 + 'px';
+                this.div.style.left = x -32 + 'px';
+
+                var dist =  Math.sqrt( Math.pow(x-this.initialX,2) +  Math.pow( y-this.initialY,2))
+                var time = new Date().getTime();
+                if( this.lastMoveTime < 0 ){
+                    this.lastMoveTime = time -100;
+                    this.initialX = x;
+                    this.initialY = y;
+                    dist = 0;
+                }
+                var dt = time - this.lastMoveTime ;
+                dt = Math.min(dt, 300)
+
+                this.energy += this.energyPerMove * dt;
+                this.energy = Math.min( this.energy, this.clickEnergy * 1.5)
+                this.lastMoveTime = time;
+
+                // Simulate event
+                //
+                if( this.energy < this.clickEnergy && dist/dt > this.minDist){
+                    this.energy -= this.distancePenalty;
+                }
+                if( this.energy > this.clickEnergy){
+                    //I stupidly didn't realize the underliying element would be the pointer image
+                    //   so as a ghetto hack we move it out of the way, get the underlying element, then put it back.
+                    this.div.style.top = -32 + 'px';  // move it away
+                    this.div.style.left = -32 + 'px';
+                    if(this.mouseDown){
+                        var element = document.elementFromPoint(x, y);
+                        if( element){
+                            syntheticEvent.simulate(element, "mouseover", {pointerX:x, pointerY:y} )
+                        }
+                        if( this.rootClickNode ){
+                            if( element == this.rootClickNode) {
+                                if(this.verbose){console.log('mousemove')}
+                                //syntheticEvent.simulate( this.rootClickNode, "mousemove", {pointerX:x, pointerY:y} )
+                            }
+                            else{
+                                if(this.verbose){console.log('mouse out')}
+                                syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:x, pointerY:y} )
+                                this.rootClickNode = element
+                            }
+                        }
+                    }
+                    else{
+                        var element = document.elementFromPoint(x, y);
+                        if( element){
+                            syntheticEvent.simulate(element, "click", {pointerX:x, pointerY:y} )
+                            syntheticEvent.simulate(element, "mousedown", {pointerX:x, pointerY:y} )
+
+                            this.rootClickNode = element;
+                        }
+                        this.mouseDown = true;
+                    }
+                    this.div.style.top = y -32 + 'px';  // put it back
+                    this.div.style.left = x -32 + 'px';
+                }
+                else{
+                    this.mouseDown = false;
+                }
+
+                if( !this.animating ){ //start Animation
+                    this.tick()
+                }
+            }
+
+            this.tick = function(){
+                if( this.energy > 0){
+                    var time = new Date().getTime();
+                    if( this.lastTickTime < 0 ){
+                        this.lastTickTime = time;
+                    }
+                    var dt = time - this.lastTickTime ;
+                    this.energy -= this.energyLoss * dt;
+                    this.lastTickTime = time;
+                    this.animating = true;
+                    this.animFramID = window.requestAnimationFrame( this.tick.bind(this))
+                }
+                else{
+                    this.energy = 0;
+                    window.cancelAnimationFrame( this.animFramID)
+                    this.animFramID = null;
+                    this.animating = false;
+                    this.lastMoveTime = -1
+                    this.lastTickTime = -1
+                    this.initialX = 0;
+                    this.initialY = 0;
+                    if( this.rootClickNode ){
+                        if(this.verbose){console.log('mouse out') }
+                        syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:0, pointerY:0} )
+                        this.rootClickNode = null;
+                    }
+                }
+                //change ui
+                if( this.energy > this.clickEnergy){
+                    this.img.src = this.burstImg.src
+                }
+                else{
+                    this.img.src = this.circleImg.src
+                }
+                this.div.style.visibility = "visible"
+                this.div.style.webkitTransform = 'scale('+this.energy+',' +this.energy+')'
+            }
+        }
+        console.log( 'made')
+
+        function moveMouse(e){
+            //console.log(e)
+            var x = e.pageX / window.innerWidth;
+            var y = e.pageY / window.innerHeight;
+
+            receiveMessage( {x:x, y:y})
+        }
+    </script>
+</head>
+
+<body onmousemove="moveMouse(event) " onclick="console.log('click') ">
+<br><br>
+<div onclick=" console.warn('click')" onmousemove="this.style.backgroundColor = 'blue' " style="color:white"> <h1>hello</h1>   </div>
+
+</body>
