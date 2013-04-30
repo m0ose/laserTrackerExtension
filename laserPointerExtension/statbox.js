@@ -35,7 +35,7 @@ if( true ){
         this.div = document.getElementById('statusBeamDiv');
         if( !this.div){    this.div = document.createElement('div')    }
         this.div.id = 'statusBeamDiv';
-        this.div.style.cssText = " position:fixed; color:white";
+        this.div.style.cssText = " z-index:3000; position:fixed; color:white";
         this.div.innerHTML = ""
         this.img = new Image();
         this.div.appendChild( this.img)
@@ -87,6 +87,7 @@ if( true ){
                         else{
                             if(this.verbose){console.log('mouse out')}
                             syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:x, pointerY:y} )
+                            //syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:x, pointerY:y} )
                             this.rootClickNode = element
                         }
                     }
@@ -137,6 +138,10 @@ if( true ){
                 if( this.rootClickNode ){
                     if(this.verbose){console.log('mouse out') }
                     syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:0, pointerY:0} )
+                    syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:0, pointerY:0} )
+                    //syntheticEvent.simulate( document.body, "mouseup", {pointerX:x, pointerY:y} )
+                    //syntheticEvent.simulate( document.body, "mouseout", {pointerX:x, pointerY:y} )
+
                     this.rootClickNode = null;
                 }
             }
