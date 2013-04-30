@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-  var button = document.getElementById('upload');
-  button.addEventListener('click', uploadPage);
+  //var button = document.getElementById('upload');
+  //button.addEventListener('click', uploadPage);
 });
 
 function uploadPage() {

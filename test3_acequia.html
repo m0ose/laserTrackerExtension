@@ -27,6 +27,8 @@
             // ac2.initializeAcequiaSession()
             //ac2.subscribeMessage( "/tuio/2Dcur/set", onTuio2Dcur)
             statbeam = new statusBeam();
+            window.setTimeout( initLaser , 3000)
+
 
         });
 
@@ -187,6 +189,31 @@
 
             receiveMessage( {x:x, y:y})
         }
+
+
+
+        //
+        // Testing of acequia
+        //
+        function initLaser(){
+            console.log('init laser')
+            acequiaLaser2.addCallback( function(e ){
+                        //document.body.innerHTML += " message. it's a miracle. " + e
+                        //console.log("acequia",e)
+                        receiveMessage( {x: e.x, y: e.y})
+                        //receiveLaserMessage(e.x, e.y, e.lat, e.lon)
+                    }
+            )
+        }
+
+        function receiveLaserMessage(nx, ny, lat, lon) {
+            var x2 = Math.floor(window.innerWidth * nx) ;
+            var y2 = Math.floor(window.innerHeight * ny);
+            var x = x2 + window.pageXOffset;
+            var y = y2 + window.pageYOffset;
+            //console.log(x2,y2,x,y)
+        }
+
     </script>
 </head>
 
