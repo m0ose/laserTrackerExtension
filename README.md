@@ -1,3 +1,5 @@
+<html>
+<body>
 <h4><u>Laser Pointer Extension</u></h4>
     <h6>version 0.2</h6>
     <hr>
