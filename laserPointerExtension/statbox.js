@@ -57,6 +57,8 @@ if( true ){
                 this.initialY = y;
                 dist = 0;
             }
+            this.x = x;
+            this.y = y;
             var dt = time - this.lastMoveTime ;
             dt = Math.min(dt, 300)
 
@@ -146,8 +148,8 @@ if( true ){
                 this.initialY = 0;
                 if( this.rootClickNode ){
                     if(this.verbose){console.log('mouse out') }
-                    syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:0, pointerY:0} )
-                    syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:0, pointerY:0} )
+                    syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:this.x, pointerY:this.y} )
+                    syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:this.x, pointerY:this.y} )
 
                     this.rootClickNode = null;
                 }
