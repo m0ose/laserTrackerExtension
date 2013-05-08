@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script>
+
+       var displayEvents = function(e,element){
+           console.log(e)
+           var dis = document.getElementById('display')
+           dis.innerHTML = e.type + "  <br>" + dis.innerHTML
+       }
+
+    </script>
+</head>
+<body>
+
+<div onclick="displayEvents(event,this)" onmousedown="displayEvents(event,this)" onmouseout="displayEvents(event,this)" onmouseover="displayEvents(event,this)" onmouseup="displayEvents(event,this)" onblur="displayEvents(event,this)" onfocus="displayEvents(event,this)" ondblclick="displayEvents(event,this)" onselect="displayEvents(event,this)">
+
+    <h1>click here</h1>
+
+</div>
+<div id="display" > </div>
+</body>
+</html>

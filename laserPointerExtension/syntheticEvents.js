@@ -20,7 +20,8 @@ syntheticEvent = new function (){
         shiftKey: false,
         metaKey: false,
         bubbles: true,
-        cancelable: false
+        cancelable: false,
+        cancelBubble: false
     }
 
     var eventMatchers = {

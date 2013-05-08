@@ -6,7 +6,7 @@ function receiveMessage(ev) {
 
     var x2 = Math.floor(window.innerWidth * ev.x) //+ window.pageXOffset;
     var y2 = Math.floor(window.innerHeight * ev.y) //+ window.pageYOffset;
-    console.log( document.width, document.height,x2,y2);
+    //console.log( document.width, document.height,x2,y2);
     statusBeam.move(x2,y2)
 }
 var statusBeam = null;
@@ -21,8 +21,8 @@ if( true ){
 
         this.verbose = false;
         this.energy = 0;
-        this.energyPerMove = 0.002; //ms
-        this.energyLoss = 0.0015; //ms
+        this.energyPerMove = 0.0014; //ms
+        this.energyLoss = 0.0009; //ms
         this.clickEnergy = 1.0;
         this.distancePenalty = 0.5;
         this.lastTickTime = -1;
@@ -61,7 +61,7 @@ if( true ){
             dt = Math.min(dt, 300)
 
             this.energy += this.energyPerMove * dt;
-            this.energy = Math.min( this.energy, this.clickEnergy * 1.5)
+            this.energy = Math.min( this.energy, this.clickEnergy * 1.7)
             this.lastMoveTime = time;
 
             // Simulate event
@@ -77,7 +77,10 @@ if( true ){
                 if(this.mouseDown){
                     var element = document.elementFromPoint(x, y);
                     if( element){
-                        syntheticEvent.simulate(element, "mouseover", {pointerX:x, pointerY:y} )
+                        if( element != this.rootClickNode){
+                            syntheticEvent.simulate(element, "mouseover", {pointerX:x, pointerY:y} )
+                        }
+                        //syntheticEvent.simulate(element, "focus", {pointerX:x, pointerY:y} )
                     }
                     if( this.rootClickNode ){
                         if( element == this.rootClickNode) {
@@ -87,6 +90,7 @@ if( true ){
                         else{
                             if(this.verbose){console.log('mouse out')}
                             syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:x, pointerY:y} )
+                            //   syntheticEvent.simulate( this.rootClickNode, "blur", {pointerX:x, pointerY:y} )
                             //syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:x, pointerY:y} )
                             this.rootClickNode = element
                         }
@@ -95,8 +99,13 @@ if( true ){
                 else{
                     var element = document.elementFromPoint(x, y);
                     if( element){
-                        syntheticEvent.simulate(element, "click", {pointerX:x, pointerY:y} )
+                        //click
+                        syntheticEvent.simulate(element, "mouseover", {pointerX:x, pointerY:y} )
                         syntheticEvent.simulate(element, "mousedown", {pointerX:x, pointerY:y} )
+                        syntheticEvent.simulate(element, "click", {pointerX:x, pointerY:y} )
+                        console.log(element)
+                        // syntheticEvent.simulate(element, "focus", {pointerX:x, pointerY:y} )
+
 
                         this.rootClickNode = element;
                     }
@@ -137,10 +146,8 @@ if( true ){
                 this.initialY = 0;
                 if( this.rootClickNode ){
                     if(this.verbose){console.log('mouse out') }
-                    syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:0, pointerY:0} )
                     syntheticEvent.simulate( this.rootClickNode, "mouseup", {pointerX:0, pointerY:0} )
-                    //syntheticEvent.simulate( document.body, "mouseup", {pointerX:x, pointerY:y} )
-                    //syntheticEvent.simulate( document.body, "mouseout", {pointerX:x, pointerY:y} )
+                    syntheticEvent.simulate( this.rootClickNode, "mouseout", {pointerX:0, pointerY:0} )
 
                     this.rootClickNode = null;
                 }
@@ -148,6 +155,8 @@ if( true ){
             //change ui
             if( this.energy > this.clickEnergy * 0.9){
                 this.img.src = this.burstImg.src
+                this.div.style.opacity = "1.0"
+
             }
             else{
                 this.img.src = this.circleImg.src
